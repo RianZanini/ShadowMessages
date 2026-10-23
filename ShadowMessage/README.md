@@ -1,245 +1,77 @@
 # ShadowMessages
 
-**ShadowMessages** é um projeto desenvolvido em Python para demonstrar a aplicação da esteganografia digital em imagens PNG. O sistema permite ocultar mensagens de texto dentro de imagens e recuperar posteriormente o conteúdo utilizando um decodificador próprio.
-
-O projeto utiliza a técnica **LSB (Least Significant Bit)**, que modifica o bit menos significativo dos canais de cor dos pixels para armazenar informações sem provocar alterações visuais normalmente perceptíveis.
+Projeto educacional em Python que demonstra esteganografia LSB em imagens PNG. O programa pode ocultar uma mensagem de texto ou os bytes de um arquivo dentro de uma imagem e depois recuperar o conteúdo com o decodificador.
 
 ## Funcionalidades
 
-- **Codificação de mensagens:** oculta textos digitados pelo usuário em imagens PNG.
-- **Ocultação de arquivos TXT:** permite armazenar o conteúdo de arquivos de texto dentro de imagens.
-- **Decodificação de mensagens:** recupera o texto oculto em imagens compatíveis.
-- **Preservação da imagem original:** gera um novo arquivo PNG sem sobrescrever a imagem de entrada.
-- **Verificação de capacidade:** permite calcular a capacidade teórica de armazenamento de uma imagem.
-- **Interface via terminal:** interação simples por meio de entradas e saídas no console.
-
-## Tecnologias utilizadas
-
-- Python 3
-- Pillow — processamento e manipulação de imagens
-- Esteganografia digital
-- Técnica LSB (Least Significant Bit)
-
-## Estrutura do projeto
-
-```text
-ShadowMessages/
-├── ShadowMessages.py
-├── ShadowMessagesDecoder.py
-├── README.md
-└── requirements.txt
-```
-
-**Descrição dos arquivos:**
-
-| Arquivo | Descrição |
-|---|---|
-| `ShadowMessages.py` | Programa responsável por ocultar mensagens em imagens PNG. |
-| `ShadowMessagesDecoder.py` | Programa responsável por extrair mensagens de imagens compatíveis. |
-| `README.md` | Documentação do projeto. |
-| `requirements.txt` | Lista de dependências necessárias. |
+- Oculta texto digitado em UTF-8.
+- Oculta arquivos de qualquer tipo, inclusive arquivos binários e arquivos com bytes nulos.
+- Salva uma nova imagem PNG sem sobrescrever a imagem portadora original.
+- Identifica o tipo e o tamanho do conteúdo por meio de um cabeçalho com assinatura e versão.
+- Ao decodificar, exibe o texto ou informa o nome do arquivo e salva o arquivo extraído na pasta da imagem.
+- Evita sobrescrever arquivos já existentes durante a extração, acrescentando `_extraido_N` ao nome.
+- Informa quando os dados não cabem na capacidade disponível da imagem.
 
 ## Requisitos
 
 - Python 3.10 ou superior.
-- Biblioteca Pillow.
-- Uma imagem no formato PNG.
+- Pillow.
+- Uma imagem portadora no formato PNG.
 
-## Instalação
-
-### 1. Clone o repositório
+Instale a dependência:
 
 ```bash
-git clone https://github.com/RianZanini/ShadowMessages.git
+python -m pip install Pillow
 ```
 
-### 2. Acesse a pasta do projeto
+## Ocultar texto ou arquivo
 
-```bash
-cd ShadowMessages
-```
-
-### 3. Instale as dependências
-
-Crie o arquivo `requirements.txt` com o seguinte conteúdo:
-
-```text
-Pillow
-```
-
-Em seguida, execute:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-## Como utilizar
-
-### 1. Ocultar uma mensagem
-
-Execute o programa de codificação:
+Na pasta `ShadowMessage`, execute:
 
 ```bash
 python ShadowMessages.py
 ```
 
-Informe o caminho da imagem PNG que será utilizada como portadora.
-
-O programa apresentará as seguintes opções:
+Informe o caminho de uma imagem PNG e escolha uma opção:
 
 ```text
-=== ESTEGANOGRAFIA EM PNG ===
-
-Caminho da imagem PNG: imagem.png
-
-Escolha como deseja esconder os dados:
 1 - Esconder texto digitado
-2 - Esconder arquivo TXT
-
-Opcao:
+2 - Esconder qualquer arquivo
 ```
 
-Escolha a opção desejada:
+Para a opção 2, informe o caminho do arquivo. O programa lê o arquivo em modo binário, preservando seu conteúdo original e seu nome. O resultado é gravado como `<nome_da_imagem>_oculto.png` no mesmo diretório da imagem selecionada. A imagem original não é alterada.
 
-- **Opção 1:** digite a mensagem que deseja ocultar.
-- **Opção 2:** informe o caminho de um arquivo TXT cujo conteúdo será armazenado.
+## Decodificar
 
-Após a codificação, será gerada uma nova imagem no mesmo diretório da imagem original.
-
-Exemplo:
-
-```text
-imagem.png
-imagem_esteganografia.png
-```
-
-A imagem original permanece intacta.
-
-### 2. Extrair uma mensagem
-
-Execute o decodificador:
+Execute:
 
 ```bash
-python ShadowMessagesDecoder.py
+python ShadowMessagesDecod.py
 ```
 
-Informe o caminho da imagem que contém a mensagem.
+Informe o caminho da imagem PNG produzida pelo codificador. Se o conteúdo for texto, ele será exibido no terminal. Se for um arquivo, o decodificador mostrará seu nome e o salvará na pasta da imagem. Caso já exista um arquivo com esse nome, será criado um nome alternativo, por exemplo `relatorio_extraido_1.txt`.
 
-Exemplo:
+## Como funciona
 
-```text
-=== SHADOW MESSAGES DECODER ===
+O codificador converte os dados em bytes e grava cada bit no bit menos significativo (LSB) dos canais RGB dos pixels. O cabeçalho armazenado antes do conteúdo inclui uma assinatura, a versão do formato, o tipo (texto ou arquivo), o tamanho do nome e o tamanho do conteúdo. Os tamanhos permitem recuperar arquivos binários sem depender de um terminador que poderia aparecer dentro dos próprios dados.
 
-Caminho da imagem PNG: imagem_esteganografia.png
+A capacidade teórica de uma imagem RGB é de três bits por pixel, ou `largura × altura × 3 ÷ 8` bytes, antes de descontar o cabeçalho e o nome do arquivo. A capacidade prática depende, portanto, das dimensões da imagem e do tamanho dos metadados.
 
-=== MENSAGEM EXTRAIDA ===
-Esta e uma mensagem de teste.
-```
+## Compatibilidade e limitações
 
-O decodificador recupera o texto armazenado na imagem, desde que ela seja compatível com o método de codificação utilizado.
+- O decodificador atual reconhece imagens gravadas com o formato versionado usado pelo codificador atual. Imagens criadas por versões anteriores, que usavam um terminador de texto, não têm esse cabeçalho e não são decodificadas por esta versão.
+- A conversão para JPEG, redimensionamento, edição ou qualquer processamento que altere os pixels pode corromper ou remover os dados. Mantenha e transmita o PNG original. Aplicativos de mensagens podem recomprimir fotos; se preservar os dados for importante, envie o PNG como documento/arquivo e confira o resultado depois de baixá-lo.
+- Esteganografia LSB não criptografa o conteúdo nem impede sua detecção. Não use para armazenar informações confidenciais sem criptografia independente.
+- O decodificador salva o arquivo extraído, mas não executa arquivos extraídos.
 
-## Como funciona a técnica LSB?
+## Arquivos do projeto
 
-A técnica LSB utiliza o bit menos significativo de cada canal de cor de um pixel para armazenar dados.
+| Arquivo | Finalidade |
+|---|---|
+| `ShadowMessages.py` | Codifica texto ou arquivos em uma imagem PNG. |
+| `ShadowMessagesDecod.py` | Decodifica texto ou extrai arquivos de uma imagem PNG. |
+| `requirements.txt` | Dependências Python do projeto. |
 
-Em uma imagem RGB, cada pixel possui três canais:
+## Uso responsável
 
-- **R:** vermelho.
-- **G:** verde.
-- **B:** azul.
-
-Cada canal possui um valor entre 0 e 255, representado por 8 bits.
-
-Por exemplo, para armazenar o bit `1` em um canal cujo valor original é `180`:
-
-```text
-Valor original: 180
-Binário:        10110100
-
-Bit armazenado: 1
-
-Novo valor:     181
-Binário:        10110101
-```
-
-A alteração é de apenas uma unidade no valor do canal de cor. Quando aplicada aos pixels de uma imagem, essa técnica geralmente não produz diferenças visuais perceptíveis.
-
-### Processo de codificação
-
-1. A mensagem é convertida em uma sequência de bytes.
-2. Os bytes são representados em formato binário.
-3. Os bits são inseridos nos bits menos significativos dos canais RGB.
-4. A imagem modificada é salva no formato PNG.
-
-### Processo de decodificação
-
-1. O programa abre a imagem PNG.
-2. Percorre os canais RGB na mesma ordem utilizada durante a codificação.
-3. Recupera os bits menos significativos.
-4. Reconstrói os bytes da mensagem.
-5. Identifica o marcador de término e converte os bytes recuperados para texto UTF-8.
-
-## Capacidade de armazenamento
-
-A capacidade teórica de uma imagem RGB, utilizando um bit de cada canal, pode ser calculada pela fórmula:
-
-\[
-C = \frac{L \times A \times 3}{8}
-\]
-
-Onde:
-
-- \(C\) representa a capacidade em bytes.
-- \(L\) representa a largura em pixels.
-- \(A\) representa a altura em pixels.
-- O fator 3 corresponde aos três canais RGB.
-
-Exemplos aproximados:
-
-| Resolução | Capacidade teórica |
-|---|---:|
-| 640 × 480 | 112,5 KiB |
-| 1280 × 720 | 337,5 KiB |
-| 1920 × 1080 | 759,4 KiB |
-| 3840 × 2160 | 2,97 MiB |
-
-A capacidade efetiva é ligeiramente menor devido aos dados de controle utilizados pelo programa.
-
-A capacidade depende da resolução da imagem, não do tamanho do arquivo PNG original em disco.
-
-## Limitações
-
-- O codificador e o decodificador precisam utilizar a mesma ordem de canais, técnica de inserção e convenção de término.
-- A implementação atual trabalha com mensagens de texto e conteúdo de arquivos TXT.
-- A capacidade disponível é limitada pela quantidade de pixels da imagem.
-- A conversão para JPEG, o redimensionamento ou outras transformações podem destruir os dados ocultos.
-- O decodificador apresentado depende de um marcador de término e pode interpretar incorretamente imagens que não tenham sido geradas pelo codificador correspondente.
-- O método LSB não oferece criptografia nem garante resistência à detecção por ferramentas de análise estatística.
-
-## Segurança e uso responsável
-
-O ShadowMessages é um projeto educacional voltado ao estudo de esteganografia, processamento de imagens e representação binária de dados.
-
-A esteganografia oculta a presença aparente de uma mensagem, mas não substitui a criptografia. Para proteger informações confidenciais, recomenda-se criptografar o conteúdo antes de armazená-lo na imagem.
-
-O projeto não deve ser utilizado para ocultar ou distribuir arquivos maliciosos, contornar mecanismos de segurança ou acessar informações sem autorização.
-
-## Possíveis melhorias
-
-- Implementar suporte à ocultação e recuperação de arquivos binários.
-- Adicionar criptografia opcional antes da codificação.
-- Armazenar o tamanho original da mensagem para permitir a recuperação de conteúdos com bytes nulos.
-- Desenvolver uma interface gráfica.
-- Implementar testes automatizados para codificação e decodificação.
-- Comparar a qualidade visual das imagens antes e depois da inserção dos dados.
-- Implementar validação de integridade por meio de hashes.
-
-## Autor
-
-**Rian Zanini Lascasas de Gouvêia**
-
-- GitHub: [@RianZanini](https://github.com/RianZanini)
-
-## Licença
-
-Este projeto pode ser distribuído sob a licença MIT. Para isso, adicione um arquivo `LICENSE` com o texto oficial da licença antes de declarar o projeto licenciado sob esses termos.
+Este projeto destina-se ao aprendizado de processamento de imagens, representação binária e esteganografia. Só compartilhe arquivos com o conhecimento e consentimento de quem os receberá.
